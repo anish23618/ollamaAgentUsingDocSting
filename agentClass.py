@@ -59,30 +59,32 @@ class AgentTool:
                             tools = toolList)
         resp = {}
         for obj in response.message:
-            print(obj)
-            if obj[0]=='content':
+            logger.info(f"[AgentTool.evaluate] {obj}")
+            if obj[0]=='content' and len(obj[1])>0:
                 resp['content'] = obj[1]
-            elif obj[0]=='tool_calls':
+            elif obj[0]=='tool_calls' and obj[1] is not None:
                 tmp = {}
-                for tool in obj[1]:
-                    print(tool.function.name,tool.function.arguments)
+                for i,tool in enumerate(obj[1]):
                     fobj = self.funcObj[tool.function.name]
                     args = tool.function.arguments
-                    sig = f"{tool.function.name}({','.join(list(args.values()))})"
+                    #sig = f"{tool.function.name}({','.join(list(args.values()))})"
                     a = {}
                     for k,v in args.items():
                         try:
                             a[k] = fobj.args[k].type(v)
                         except:
-                            print(k)
-                            print(tr.format_exc())
                             if v in tmp:
                                 a[k] = tmp[v]
+                            else:
+                                pass
                     try:
                         r = fobj.func(**a)
-                        tmp[sig] = r
+                        tmp[f'evaluating'] = f"function name: {fobj.name}\nargs: {args}"
+                        tmp[f'result'] = r
                     except:
-                        print(tr.format_exc())
+                        tmp[f'evaluating'] = f"function name: {fobj.name}\nargs: {a}"
+                        tmp[f'error'] = tr.format_exc()
+                    break
                 resp['tool'] = tmp
         return resp
 
@@ -108,35 +110,3 @@ class AgentTool:
         return decorator
 
 
-if __name__ == '__main__':
-    ###################
-    # Demo example
-    test = AgentTool('hermes3:latest')
-    ###################
-    @test.funcDeclaration(x="first argument for addition, must be integer",y="Second argument for addition, must be a number")
-    def add(x:int,y:int=0):
-        """This function defines addition of two numbers. 
-Given x and y add(x,y) returns x+y.
-if y is not given it returns x.
-"""
-        return x+y
-    
-    @test.funcDeclaration(x="first argument for multiplication, must be integer",y="Second argument for multiplication, must be a number")
-    def mult(x:int,y:int=1):
-        """This function defines multiplication of two numbers. 
-Given x and y mult(x,y) returns x*y.
-if y is not given it returns x.
-"""
-        return x*y
-    
-    
-    ######################################################
-    '''
-    for k,o in test.funcObj.items():
-        print(k)
-        print(o)
-        print("###########################")
-    '''
-    #######################################################
-    resp = test.evaluate([{'role':'user','content':"what is 1243432*343227+223555?"}])
-    print("response:", resp)
