@@ -9,6 +9,7 @@ class modelChatTest(AgentTool):
     
     def _generate(self,querylist:list,argmap:dict = {}):
         toolList = self.genToolDetails()
+        #print(toolList)
         response = ollama.chat(model = self.model,
                                messages = querylist,
                                tools = toolList)

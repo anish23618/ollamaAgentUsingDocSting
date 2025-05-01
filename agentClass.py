@@ -69,6 +69,7 @@ class AgentTool:
                         'required':[]
                         }
                 } for fname,fobj in self.funcDef.items()]
+        return toolList
 
     def evaluate(self,fname:str,kargs:dict,argmap:dict={}):
         if fname not in self.funcDef:
