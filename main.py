@@ -43,12 +43,13 @@ If no further action needs to be taken please respond with "Done" only, without 
 """.replace('{query}',query)
         response = ollama.chat(model = self.model,messages = history+[{'role':'user','content':prompt1}])
 
-        return [{'role':'critic','content':o[1]} for o in response.message if o[0]=='content']
+        return [{'role':'user','content':o[1]} for o in response.message if o[0]=='content']
 
 
     def query(self,query:str,history:list=[],argmap:dict = {}):
         prompt0 = """ You have multiple tools available to you. 
 Use the tools to answer the query to best of your abilities. 
+Do not perform any calculation by yourself.
 If the query cannot be answered in one step, please list down all the steps required for completing the task and perform the first step only.
 You will have multiple oppurtunity to finish the task. The query is:
 {query}
